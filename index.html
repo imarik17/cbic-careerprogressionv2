@@ -8,24 +8,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative;}
         h1 { text-align: center; color: #333; margin-bottom: 20px; }
         
         /* Navigation Bar */
         .nav-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 15px; flex-wrap: wrap;}
-        .nav-bar button { background-color: #f8f9fa; color: #333; border: 1px solid #ccc; font-weight: bold; }
+        .nav-bar button { background-color: #f8f9fa; color: #333; border: 1px solid #ccc; font-weight: bold; padding: 10px 15px; border-radius: 5px; cursor: pointer; transition: 0.2s;}
         .nav-bar button:hover { background-color: #e2e6ea; }
         .nav-bar button.active-nav { background-color: #007bff; color: white; border-color: #007bff; }
 
         /* Pages */
         .page { display: none; }
         .page.active-page { display: block; }
-
-        /* Login Screen */
-        .login-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; }
-        .login-box { background: #f8f9fa; padding: 30px; border-radius: 8px; border: 1px solid #ddd; width: 100%; max-width: 400px; text-align: center; }
-        .login-box input { width: 100%; margin-bottom: 15px; box-sizing: border-box;}
-        .login-box button { width: 100%; }
 
         /* Disclaimer CSS */
         .disclaimer { background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-size: 14px; border: 1px solid #ffeeba; }
@@ -37,9 +31,10 @@
         .control-group { display: flex; flex-direction: column; }
         label { font-weight: bold; margin-bottom: 5px; color: #555; text-align: left;}
         input[type="text"], input[type="number"], input[type="password"], select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; width: 250px;}
-        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background 0.3s;}
-        button:hover { background-color: #0056b3; }
-        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        button.action-btn { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background 0.3s;}
+        button.action-btn:hover { background-color: #0056b3; }
+        button.action-btn:disabled { background-color: #cccccc; cursor: not-allowed; }
+        
         .officer-info { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-size: 18px; display: none; text-align: center;}
         
         /* Tabs CSS */
@@ -56,22 +51,22 @@
         .promo-table th { background-color: #007bff; color: white; }
         .promo-table tr:nth-child(even) { background-color: #f9f9f9; }
         .promo-table tr:hover { background-color: #f1f1f1; }
+        .clickable-row { cursor: pointer; transition: background 0.2s;}
+        .clickable-row:hover { background-color: #d1ecf1 !important; }
         .table-title { text-align: center; color: #333; margin-top: 30px; margin-bottom: 10px; }
 
         #status-msg { text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 16px;}
-        .logout-btn { background-color: #dc3545; padding: 8px 15px; font-size: 14px; margin-left: auto; }
-        .logout-btn:hover { background-color: #c82333; }
         
         /* Author Credit CSS */
-        #author-credit { 
-            position: fixed; 
-            bottom: 10px; 
-            right: 15px; 
-            font-size: 11px; 
-            color: #888; 
-            display: none; /* Hidden on load */
-            z-index: 1000;
-        }
+        #author-credit { position: fixed; bottom: 10px; right: 15px; font-size: 11px; color: #888; z-index: 1000; }
+
+        /* Modal / Popup CSS */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 8px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3);}
+        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;}
+        .close-btn:hover { color: black; }
+        .clickable-count { color: #007bff; text-decoration: underline; cursor: pointer; font-weight: bold; }
+        .clickable-count:hover { color: #0056b3; }
     </style>
 </head>
 <body>
@@ -79,37 +74,9 @@
 <div class="container">
     <h1>📈 Officer Promotion Predictor</h1>
 	
-	<div id="author-credit">by imarik</div>
-	
-	<style>
-	  #author-credit {
-	    position: fixed;
-	    bottom: 0;
-	    left: 0;
-	    margin: 10px;   /* optional spacing from edges */
-	  }
-	</style>
-
-	
     <div id="status-msg" style="color: blue;">Loading local CSV database...</div>
 
-    <div id="loginScreen" class="login-container">
-        <div class="login-box">
-            <h3 style="margin-top:0; color: #333;">System Login</h3>
-            <div class="control-group">
-                <label for="loginId">User ID (Employee ID No.):</label>
-                <input type="number" id="loginId" placeholder="e.g. 8366" onkeypress="handleEnter(event)">
-            </div>
-            <div class="control-group">
-                <label for="loginPassword">Password (Birth Year):</label>
-                <input type="password" id="loginPassword" placeholder="e.g. 1988" onkeypress="handleEnter(event)">
-            </div>
-            <button id="loginBtn" onclick="attemptLogin()" disabled>Login</button>
-            <div id="login-error-msg" style="color: red; margin-top: 15px; font-weight: bold;"></div>
-        </div>
-    </div>
-
-    <div id="mainApp" style="display: none;">
+    <div id="mainApp" style="display: block;">
         
         <div class="disclaimer">
             <strong>Disclaimers:</strong>
@@ -117,15 +84,15 @@
                 <li>This projection has been prepared using a basic forecasting equation with minimal parameters, primarily based on the availability of vacancies. The actual years of promotion may differ, as the calculation does not take into account the eligibility criteria applicable to each designation.</li>
                 <li>The data has been sourced from the Civil List PDF file; while every effort has been made to ensure accuracy, some discrepancies may remain due to the cumbersome nature of verification.</li>
                 <li>Post-restructuring vacancies have been taken from the Re-worked Cadre Restructuring Proposal of CBIC presented before the Revenue Secretary.</li>
-                <li>At present, coverage is limited to officers at the level of Joint Commissioner and above.</li>
+                <li>At present, coverage is limited to officers at the level of Deputy Commissioner and above.</li>
                 <li>And, the figures presented herein are purely indicative, prepared in a rudimentary manner to provide only a broad overview of the promotional position. They should not be treated as definitive, as they are intended merely to convey a general picture.</li>
             </ol>
         </div>
 
         <div class="nav-bar">
             <button id="nav-predictor" class="active-nav" onclick="switchPage('page-predictor')">Promotion Predictor</button>
+            <button id="nav-name" onclick="switchPage('page-name')">Search by Name</button>
             <button id="nav-batch" onclick="switchPage('page-batch')">Batch-wise Analysis</button>
-            <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
 
         <div id="page-predictor" class="page active-page">
@@ -135,10 +102,10 @@
                     <input type="number" id="empId" placeholder="e.g. 8366">
                 </div>
                 <div class="control-group">
-                    <label for="empBirthYear">Birth Year:</label>
+                    <label for="empBirthYear">Birth Year (Required for verification):</label>
                     <input type="password" id="empBirthYear" placeholder="e.g. 1988">
                 </div>
-                <button id="simBtn" onclick="runSimulation()">Simulate Promotions</button>
+                <button id="simBtn" class="action-btn" onclick="runSimulation()">Simulate Promotions</button>
             </div>
 
             <div class="officer-info" id="officerInfo">
@@ -170,6 +137,17 @@
             </div>
         </div>
 
+        <div id="page-name" class="page">
+            <h3 style="text-align: center;">Find Officer by Name</h3>
+            <div class="controls">
+                <div class="control-group" style="width: 100%; align-items: center;">
+                    <input type="text" id="searchNameInput" placeholder="Start typing a name..." onkeyup="searchByName()" style="width: 60%; max-width: 400px;">
+                </div>
+            </div>
+            <p style="text-align: center; font-size: 14px; color: #666;"><em>Click on an officer's row to view their promotion graph.</em></p>
+            <div id="nameSearchResults"></div>
+        </div>
+
         <div id="page-batch" class="page">
             <h3 style="text-align: center;">Batch-wise Final Retirement Designations</h3>
             <p style="text-align: center; color: #555;">Select a batch to see how many officers will retire in each designation.</p>
@@ -179,14 +157,24 @@
                         <option value="">-- Select a Batch --</option>
                     </select>
                 </div>
-                <button id="batchBtn" onclick="runBatchAnalysis()">Analyze Batch</button>
+                <button id="batchBtn" class="action-btn" onclick="runBatchAnalysis()">Analyze Batch</button>
             </div>
+            <p style="text-align: center; font-size: 14px; color: #666; margin-top: -10px;"><em>Click on the counts in the table below to see the list of officers.</em></p>
             <div id="batchResults"></div>
         </div>
     </div>
 
 </div>
 
+<div id="officerModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3 id="modalTitle" style="margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">Officers</h3>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<div id="author-credit">by Krishnenthu Raja Mintoo</div>
 
 <script>
     const LOCAL_CSV_FILE = "cl.csv";
@@ -198,31 +186,38 @@
         "Principal Commissioner", 
         "Commissioner", 
         "Additional Commissioner", 
-        "Joint Commissioner"
+        "Joint Commissioner",
+        "Deputy Commissioner"
     ];
 
     const CURRENT_POSTS = {
-        "Principal Chief Commissioner": 16, // 10 + 6 (from Member)
+        "Principal Chief Commissioner": 16, 
         "Chief Commissioner": 38, 
         "Principal Commissioner": 99, 
         "Commissioner": 335, 
         "Additional Commissioner": 680, 
-        "Joint Commissioner": 400
+        "Joint Commissioner": 400,
+        "Deputy Commissioner": 2000
     };
 
     const RESTRUCTURED_POSTS = {
-        "Principal Chief Commissioner": 40, // 34 + 6 (from Member)
+        "Principal Chief Commissioner": 40, 
         "Chief Commissioner": 50, 
         "Principal Commissioner": 138, 
         "Commissioner": 562, 
         "Additional Commissioner": 1000, 
-        "Joint Commissioner": 748
+        "Joint Commissioner": 748,
+        "Deputy Commissioner": 2000
     };
 
     let globalData = [];
     let chartCurrent = null;
     let chartRestructure = null;
     let currentYear = new Date().getFullYear();
+    
+    // Global variable to hold batch lists for modal
+    window.currentBatchLists = {};
+    window.restructureBatchLists = {};
 
     function getCumulativeSeats(postsDict) {
         let cumSeats = {};
@@ -277,6 +272,9 @@
                 if (yos >= 13) return checkDesig;
             }
             else if (checkDesig === "Joint Commissioner") {
+                if (yos >= 9) return checkDesig; 
+            }
+            else if (checkDesig === "Deputy Commissioner") {
                 return checkDesig; 
             }
         }
@@ -348,10 +346,12 @@
                         { search: "Director General", standard: "Chief Commissioner" },
                         { search: "Chief Commissioner", standard: "Chief Commissioner" },
                         { search: "Addl. DG", standard: "Commissioner" },
-                        { search: "Commissioner", standard: "Commissioner" }
+                        { search: "Commissioner", standard: "Commissioner" },
+                        { search: "Deputy Director", standard: "Deputy Commissioner" },
+                        { search: "Deputy Commissioner", standard: "Deputy Commissioner" }
                     ];
 
-                    let actualDesig = "Joint Commissioner"; 
+                    let actualDesig = "Deputy Commissioner"; 
                     let rowValues = Object.values(row);
                     
                     for (let aliasObj of DESIGNATION_ALIASES) {
@@ -367,6 +367,7 @@
                             siNo: siNo,
                             name: row['Name'] || 'Unknown',
                             batch: batch,
+                            retDate: retStr || "Unknown",
                             retYear: retYear,
                             birthYear: birthYear,
                             joinYear: joinYear,
@@ -378,11 +379,8 @@
                 });
 
                 if (globalData.length > 0) {
-                    document.getElementById('status-msg').style.color = 'green';
-                    document.getElementById('status-msg').innerText = `✅ Database Connected (${globalData.length} records loaded). Please login.`;
+                    document.getElementById('status-msg').style.display = 'none'; // hide status on success
                     
-                    document.getElementById('loginBtn').disabled = false;
-
                     let batchSelect = document.getElementById('batchSelect');
                     Array.from(batches).sort().forEach(b => {
                         let opt = document.createElement('option');
@@ -403,64 +401,6 @@
         });
     };
 
-    function attemptLogin() {
-        let userIdInput = document.getElementById('loginId').value;
-        let passwordInput = document.getElementById('loginPassword').value.trim();
-        let errorMsg = document.getElementById('login-error-msg');
-
-        if (!userIdInput || !passwordInput) {
-            errorMsg.innerText = "Please enter both User ID and Password.";
-            return;
-        }
-
-        let empId = parseInt(userIdInput);
-        let officer = globalData.find(o => o.idNo === empId);
-
-        if (officer) {
-            if (officer.birthYear === passwordInput) {
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('status-msg').style.display = 'none'; 
-                document.getElementById('mainApp').style.display = 'block';
-                document.getElementById('author-credit').style.display = 'block'; 
-                
-                document.getElementById('empId').value = empId;
-                document.getElementById('empBirthYear').value = passwordInput;
-                runSimulation();
-                
-                document.getElementById('loginId').value = "";
-                document.getElementById('loginPassword').value = "";
-                errorMsg.innerText = "";
-            } else {
-                errorMsg.innerText = "Incorrect Password (Birth Year).";
-            }
-        } else {
-            errorMsg.innerText = "User ID not found in database.";
-        }
-    }
-
-    function logout() {
-        document.getElementById('mainApp').style.display = 'none';
-        document.getElementById('status-msg').style.display = 'block';
-        document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('author-credit').style.display = 'none';
-        
-        switchPage('page-predictor');
-        
-        document.getElementById('empId').value = "";
-        document.getElementById('empBirthYear').value = "";
-        document.getElementById('officerInfo').style.display = 'none';
-        document.getElementById('currentListContainer').innerHTML = "";
-        document.getElementById('restructureListContainer').innerHTML = "";
-        if(chartCurrent) chartCurrent.destroy();
-        if(chartRestructure) chartRestructure.destroy();
-    }
-
-    function handleEnter(e) {
-        if (e.key === 'Enter' && !document.getElementById('loginBtn').disabled) {
-            attemptLogin();
-        }
-    }
-
     function switchPage(pageId) {
         document.querySelectorAll('.page').forEach(el => el.classList.remove('active-page'));
         document.getElementById(pageId).classList.add('active-page');
@@ -469,6 +409,47 @@
         document.getElementById('nav-' + pageId.split('-')[1]).classList.add('active-nav');
     }
 
+    // --- PAGE: NAME SEARCH LOGIC ---
+    function searchByName() {
+        let input = document.getElementById('searchNameInput').value.toLowerCase();
+        let container = document.getElementById('nameSearchResults');
+        
+        if (input.length < 3) {
+            container.innerHTML = "<p style='text-align:center;'>Type at least 3 characters to search...</p>";
+            return;
+        }
+
+        let results = globalData.filter(o => o.name.toLowerCase().includes(input));
+
+        if (results.length === 0) {
+            container.innerHTML = "<p style='text-align:center; color: red;'>No officers found matching that name.</p>";
+            return;
+        }
+
+        let html = `<table class="promo-table">
+                        <thead><tr><th>ID No.</th><th>Name</th><th>Batch</th><th>Retirement Date</th></tr></thead><tbody>`;
+        
+        results.forEach(o => {
+            html += `<tr class="clickable-row" onclick="selectOfficerFromSearch(${o.idNo}, '${o.birthYear}')">
+                        <td>${o.idNo}</td>
+                        <td><strong>${o.name}</strong></td>
+                        <td>${o.batch}</td>
+                        <td>${o.retDate}</td>
+                     </tr>`;
+        });
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+    }
+
+    function selectOfficerFromSearch(empId, birthYear) {
+        // Automatically fill the details so the user doesn't have to guess the Birth Year
+        document.getElementById('empId').value = empId;
+        document.getElementById('empBirthYear').value = birthYear;
+        switchPage('page-predictor');
+        runSimulation();
+    }
+
+    // --- PAGE: BATCH ANALYSIS LOGIC ---
     function simulateOfficerHistory(officer, cumSeats) {
         let history = {};
         let startIdx = HIERARCHY.indexOf(officer.currentDesig);
@@ -479,7 +460,7 @@
                 history[HIERARCHY[i]] = 1900; 
             }
         } else {
-            history["Joint Commissioner"] = officer.promYear;
+            history["Deputy Commissioner"] = officer.promYear;
         }
 
         let startYear = currentYear;
@@ -513,22 +494,26 @@
 
         let batchOfficers = globalData.filter(o => o.batch === batch);
         
-        let currentCounts = {};
-        let restructureCounts = {};
+        let currentLists = {};
+        let restructureLists = {};
         
         let allLabels = [...HIERARCHY, "Waiting List / Out of Cadre"];
         allLabels.forEach(h => {
-            currentCounts[h] = 0;
-            restructureCounts[h] = 0;
+            currentLists[h] = [];
+            restructureLists[h] = [];
         });
 
         batchOfficers.forEach(officer => {
             let dCurr = simulateOfficerHistory(officer, currentCumSeats);
             let dRest = simulateOfficerHistory(officer, restructureCumSeats);
             
-            if(currentCounts[dCurr] !== undefined) currentCounts[dCurr]++;
-            if(restructureCounts[dRest] !== undefined) restructureCounts[dRest]++;
+            currentLists[dCurr].push(officer);
+            restructureLists[dRest].push(officer);
         });
+
+        // Save lists globally so the modal can access them
+        window.currentBatchLists = currentLists;
+        window.restructureBatchLists = restructureLists;
 
         let html = `<h4 style="text-align:center; margin-top:30px;">Retirement Designations for Batch: ${batch} (Total: ${batchOfficers.length} Officers)</h4>`;
         html += `<table class="promo-table">
@@ -542,11 +527,18 @@
                     <tbody>`;
         
         allLabels.forEach(designation => {
-            if (currentCounts[designation] > 0 || restructureCounts[designation] > 0) {
+            let currCount = currentLists[designation].length;
+            let restCount = restructureLists[designation].length;
+            
+            if (currCount > 0 || restCount > 0) {
                 html += `<tr>
                             <td><strong>${designation}</strong></td>
-                            <td style="text-align:center;">${currentCounts[designation]}</td>
-                            <td style="text-align:center; background-color:#e8f5e9;">${restructureCounts[designation]}</td>
+                            <td style="text-align:center;">
+                                ${currCount > 0 ? `<span class="clickable-count" onclick="showBatchDetails('${designation}', 'current')">${currCount}</span>` : '0'}
+                            </td>
+                            <td style="text-align:center; background-color:#e8f5e9;">
+                                ${restCount > 0 ? `<span class="clickable-count" onclick="showBatchDetails('${designation}', 'restructure')">${restCount}</span>` : '0'}
+                            </td>
                          </tr>`;
             }
         });
@@ -555,12 +547,44 @@
         container.innerHTML = html;
     }
 
+    // --- MODAL LOGIC FOR BATCH DETAILS ---
+    function showBatchDetails(designation, type) {
+        let list = type === 'current' ? window.currentBatchLists[designation] : window.restructureBatchLists[designation];
+        let title = `${designation} <span style='font-size:16px; color:#555;'>(${type === 'current' ? 'Current Vacancies' : 'Restructured Vacancies'})</span>`;
+        document.getElementById('modalTitle').innerHTML = title;
+        
+        let html = `<table class="promo-table">
+                    <thead><tr><th>ID No.</th><th>Name</th><th>Date of Retirement</th></tr></thead><tbody>`;
+        
+        list.forEach(o => {
+            html += `<tr><td>${o.idNo}</td><td>${o.name}</td><td>${o.retDate || o.retYear}</td></tr>`;
+        });
+        
+        html += `</tbody></table>`;
+        document.getElementById('modalBody').innerHTML = html;
+        document.getElementById('officerModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('officerModal').style.display = 'none';
+    }
+
+    // Close modal if user clicks outside of the content box
+    window.onclick = function(event) {
+        let modal = document.getElementById('officerModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+
+    // --- PAGE: PROMOTION PREDICTOR LOGIC ---
     function runSimulation() {
         const empIdInput = document.getElementById('empId').value;
         const empBirthYearInput = document.getElementById('empBirthYear').value.trim();
         
         if (!empIdInput || !empBirthYearInput) {
-            alert("Please enter both Employee ID and Birth Year.");
+            alert("Please enter both Employee ID and Birth Year to search.");
             return;
         }
 
@@ -573,8 +597,9 @@
             return;
         }
 
+        // Strict validation: Must have correct Birth Year combination to proceed
         if (officerInfo.birthYear !== empBirthYearInput) {
-            alert("Incorrect Birth Year for the provided Employee ID.");
+            alert("Incorrect Birth Year combination for the provided Employee ID. Access Denied.");
             document.getElementById('officerInfo').style.display = 'none';
             return;
         }
@@ -603,8 +628,8 @@
                 historyRestructure[HIERARCHY[i]] = 1900;
             }
         } else {
-            historyCurrent["Joint Commissioner"] = officerInfo.promYear;
-            historyRestructure["Joint Commissioner"] = officerInfo.promYear;
+            historyCurrent["Deputy Commissioner"] = officerInfo.promYear;
+            historyRestructure["Deputy Commissioner"] = officerInfo.promYear;
         }
 
         for (let year = startYear; year <= officerInfo.retYear; year++) {
@@ -759,7 +784,4 @@
 </script>
 
 </body>
-
 </html>
-
-
